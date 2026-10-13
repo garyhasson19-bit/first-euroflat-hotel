@@ -118,7 +118,7 @@ sup { font-size: .5em; vertical-align: .9em; line-height: 0; }
 .nav[data-theme="light"].is-scrolled { background: rgba(229, 223, 221, .86); color: var(--velours); }
 .nav.is-hidden { transform: translateY(-110%); }
 .brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; margin-right: auto; }
-.brand-name { font-family: var(--serif); font-size: 1.45rem; letter-spacing: -.01em; }
+.brand-name { font-family: var(--serif); font-size: 1.45rem; letter-spacing: -.01em; white-space: nowrap; }
 .brand-stars { color: var(--laiton-clair); font-size: .62rem; letter-spacing: .18em; transform: translateY(-.35em); }
 .nav[data-theme="light"].is-scrolled .brand-stars { color: var(--laiton); }
 .nav-links { display: flex; gap: 26px; font-size: .95rem; }
@@ -168,7 +168,7 @@ sup { font-size: .5em; vertical-align: .9em; line-height: 0; }
 .hero-title .line > span { display: inline-block; }
 @media (min-width: 900px) {
   .hero-title .line { white-space: nowrap; }
-  :lang(en) .hero-title { font-size: clamp(3rem, 6.6vw, 7.6rem); }
+  :lang(en) .hero-title, :lang(nl) .hero-title { font-size: clamp(3rem, 6.6vw, 7.6rem); }
 }
 .hero-title .line:nth-child(2) { padding-left: .9em; }
 .hero-sub { display: flex; flex-direction: column; gap: 26px; max-width: 30rem; }
@@ -462,10 +462,16 @@ sup { font-size: .5em; vertical-align: .9em; line-height: 0; }
   }
   .brand-name { font-size: 1.3rem; }
   .lang { margin-right: 2px; }
+  .menu-toggle { padding: 0 16px; }
+}
+@media (max-width: 479px) {
+  .brand-stars { display: none; }
+  .brand-name { font-size: 1.22rem; }
+  .lang a { padding: 8px 4px; }
 
   .hero-copy { top: calc(var(--vh) * 13); width: auto; right: var(--gutter); gap: 22px; }
   .hero-title { font-size: clamp(2.9rem, 13vw, 5.4rem); }
-  :lang(en) .hero-title { font-size: clamp(2.4rem, 10.4vw, 4.4rem); }
+  :lang(en) .hero-title, :lang(nl) .hero-title { font-size: clamp(2.4rem, 10.4vw, 4.4rem); }
   .hero-title .line:nth-child(2) { padding-left: .5em; }
   .hero-sub p { font-size: 1rem; }
   .hero-window { --t: calc(var(--vh) * 60); --r: var(--gutter); --b: calc(var(--vh) * 3); --l: var(--gutter); --rad: 46vw; }

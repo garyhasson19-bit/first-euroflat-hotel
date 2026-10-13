@@ -4,7 +4,70 @@
   const hasGsap = !!(window.gsap && window.ScrollTrigger);
   const motion = hasGsap && !reduce;
   const finePointer = matchMedia('(pointer: fine)').matches;
-  const EN = html.lang.startsWith('en');
+  // Interface strings for the three language versions of the page.
+  const LANG = ['en', 'nl'].find((l) => html.lang.startsWith(l)) || 'fr';
+  const T = {
+    fr: {
+      close: 'Fermer',
+      price: { grand: 'de 400 à 655 €', petit: 'de 390 à 500 €' },
+      layouts: { theatre: 'Théâtre', ecole: 'École', conseil: 'Conseil', u: 'En U' },
+      copy: 'Copier l’adresse', copied: 'Adresse copiée', copyFail: 'Copie impossible, sélectionnez l’adresse',
+      info: { subject: 'Demande d’information', body: 'Bonjour,\n\n' },
+      offer: (room, layout, cap) => ({
+        subject: 'Demande d’offre pour une réunion',
+        body: [
+          'Bonjour,', '',
+          'Je souhaite recevoir une offre pour une réunion au First Euroflat Hotel.', '',
+          `Salle : ${room === 'grand' ? 'Grand Charlemagne (90 m²)' : 'Charlemagne I ou II (45 m²)'}`,
+          `Disposition : ${layout} (jusqu’à ${cap} personnes)`,
+          'Date souhaitée : ',
+          'Nombre de participants : ',
+          'Formule : forfait Light Lunch, forfait menu 3 services ou salle seule', '',
+          'Merci d’avance,', '',
+        ],
+      }),
+    },
+    en: {
+      close: 'Close',
+      price: { grand: 'from €400 to €655', petit: 'from €390 to €500' },
+      layouts: { theatre: 'Theatre', ecole: 'Classroom', conseil: 'Boardroom', u: 'U-shape' },
+      copy: 'Copy address', copied: 'Address copied', copyFail: 'Copy failed, select the address',
+      info: { subject: 'Information request', body: 'Hello,\n\n' },
+      offer: (room, layout, cap) => ({
+        subject: 'Meeting quote request',
+        body: [
+          'Hello,', '',
+          'I would like to receive a quote for a meeting at the First Euroflat Hotel.', '',
+          `Room: ${room === 'grand' ? 'Grand Charlemagne (90 m²)' : 'Charlemagne I or II (45 m²)'}`,
+          `Layout: ${layout} (up to ${cap} people)`,
+          'Preferred date: ',
+          'Number of participants: ',
+          'Option: Light Lunch package, three-course menu package or room only', '',
+          'Thank you,', '',
+        ],
+      }),
+    },
+    nl: {
+      close: 'Sluiten',
+      price: { grand: 'van € 400 tot € 655', petit: 'van € 390 tot € 500' },
+      layouts: { theatre: 'Theater', ecole: 'School', conseil: 'Boardroom', u: 'U-vorm' },
+      copy: 'Adres kopiëren', copied: 'Adres gekopieerd', copyFail: 'Kopiëren mislukt, selecteer het adres',
+      info: { subject: 'Vraag om informatie', body: 'Goedendag,\n\n' },
+      offer: (room, layout, cap) => ({
+        subject: 'Offerteaanvraag voor een vergadering',
+        body: [
+          'Goedendag,', '',
+          'Graag ontvang ik een offerte voor een vergadering in het First Euroflat Hotel.', '',
+          `Zaal: ${room === 'grand' ? 'Grand Charlemagne (90 m²)' : 'Charlemagne I of II (45 m²)'}`,
+          `Opstelling: ${layout} (tot ${cap} personen)`,
+          'Gewenste datum: ',
+          'Aantal deelnemers: ',
+          'Formule: Light Lunch-formule, driegangenmenu-formule of enkel de zaal', '',
+          'Alvast bedankt,', '',
+        ],
+      }),
+    },
+  }[LANG];
   window.__motionReady = true;
   if (!motion) html.classList.remove('motion');
   if (hasGsap) gsap.registerPlugin(ScrollTrigger);
@@ -103,7 +166,7 @@
     nav.classList.add('menu-open');
     nav.classList.remove('is-hidden');
     toggle.setAttribute('aria-expanded', 'true');
-    toggle.firstElementChild.textContent = EN ? 'Close' : 'Fermer';
+    toggle.firstElementChild.textContent = T.close;
     document.body.style.overflow = 'hidden';
     if (lenis) lenis.stop();
     if (motion) {
@@ -176,8 +239,8 @@
 
   /* ---------- Meeting planner ---------- */
   const ROOMS = {
-    grand: { w: 600, price: EN ? 'from €400 to €655' : 'de 400 à 655 €', cap: { theatre: 80, ecole: 52, conseil: 40, u: 36 } },
-    petit: { w: 300, price: EN ? 'from €390 to €500' : 'de 390 à 500 €', cap: { theatre: 30, ecole: 20, conseil: 15, u: 12 } },
+    grand: { w: 600, price: T.price.grand, cap: { theatre: 80, ecole: 52, conseil: 40, u: 36 } },
+    petit: { w: 300, price: T.price.petit, cap: { theatre: 30, ecole: 20, conseil: 15, u: 12 } },
   };
   const svgNS = 'http://www.w3.org/2000/svg';
   const chairsG = $('.plan-chairs');
@@ -327,48 +390,14 @@
   /* ---------- E-mail links ---------- */
   // The mailto link opens the visitor's mail app; the toast covers devices without one.
   const HOTEL_MAIL = 'reservation@firsteuroflathotel.be';
-  const LAYOUT_NAMES = EN
-    ? { theatre: 'Theatre', ecole: 'Classroom', conseil: 'Boardroom', u: 'U-shape' }
-    : { theatre: 'Théâtre', ecole: 'École', conseil: 'Conseil', u: 'En U' };
-  const COPY_LABEL = EN ? 'Copy address' : 'Copier l’adresse';
   const toast = $('.mail-toast');
   const copyBtn = $('[data-copy]', toast);
   let toastTimer;
 
   function mailContent(kind) {
-    const cap = ROOMS[plan.room].cap[plan.layout];
-    if (EN) {
-      if (kind !== 'offre') return { subject: 'Information request', body: 'Hello,\n\n' };
-      const room = plan.room === 'grand' ? 'Grand Charlemagne (90 m²)' : 'Charlemagne I or II (45 m²)';
-      return {
-        subject: 'Meeting quote request',
-        body: [
-          'Hello,', '',
-          'I would like to receive a quote for a meeting at the First Euroflat Hotel.', '',
-          `Room: ${room}`,
-          `Layout: ${LAYOUT_NAMES[plan.layout]} (up to ${cap} people)`,
-          'Preferred date: ',
-          'Number of participants: ',
-          'Option: Light Lunch package, three-course menu package or room only', '',
-          'Thank you,', '',
-        ].join('\n'),
-      };
-    }
-    if (kind !== 'offre') return { subject: 'Demande d’information', body: 'Bonjour,\n\n' };
-    const room = plan.room === 'grand' ? 'Grand Charlemagne (90 m²)' : 'Charlemagne I ou II (45 m²)';
-    return {
-      subject: 'Demande d’offre pour une réunion',
-      body: [
-        'Bonjour,', '',
-        'Je souhaite recevoir une offre pour une réunion au First Euroflat Hotel.', '',
-        `Salle : ${room}`,
-        `Disposition : ${LAYOUT_NAMES[plan.layout]} (jusqu’à ${cap} personnes)`,
-        'Date souhaitée : ',
-        'Nombre de participants : ',
-        'Formule : forfait Light Lunch, forfait menu 3 services ou salle seule', '',
-        'Merci d’avance,', '',
-      ].join('\n'),
-    };
+    if (kind !== 'offre') return T.info;
+    const { subject, body } = T.offer(plan.room, T.layouts[plan.layout], ROOMS[plan.room].cap[plan.layout]);
+    return { subject, body: body.join('\n') };
   }
 
   function hideToast() {
@@ -378,7 +407,7 @@
   }
   function showToast() {
     toast.hidden = false;
-    copyBtn.textContent = COPY_LABEL;
+    copyBtn.textContent = T.copy;
     document.body.classList.add('toast-open');
     requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('is-in')));
     clearTimeout(toastTimer);
@@ -398,9 +427,9 @@
   copyBtn.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(HOTEL_MAIL);
-      copyBtn.textContent = EN ? 'Address copied' : 'Adresse copiée';
+      copyBtn.textContent = T.copied;
     } catch {
-      copyBtn.textContent = EN ? 'Copy failed, select the address' : 'Copie impossible, sélectionnez l’adresse';
+      copyBtn.textContent = T.copyFail;
     }
   });
 
