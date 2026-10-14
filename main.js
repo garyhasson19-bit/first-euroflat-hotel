@@ -535,7 +535,8 @@
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const firstMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const lastMonth = new Date(today.getFullYear(), today.getMonth() + 17, 1);
+  const MONTHS_AHEAD = 18; // how far ahead the calendar goes, current month included
+  const lastMonth = new Date(today.getFullYear(), today.getMonth() + MONTHS_AHEAD - 1, 1);
   const fmtShort = new Intl.DateTimeFormat(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' });
   const fmtLong = new Intl.DateTimeFormat(LOCALE, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const fmtMonth = new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric' });
@@ -603,7 +604,11 @@
   const cal = $('.bb-cal', bar);
   const monthsEl = $('.bb-months', bar);
   const submitBtn = $('.bb-submit', bar);
-  const monthsShown = () => (wide() && !bk.sheet ? 2 : 1);
+  const monthsShown = () => {
+    if (bk.sheet || !wide()) return MONTHS_AHEAD;
+    return window.innerWidth >= 1200 ? 3 : 2;
+  };
+  const lastView = () => new Date(lastMonth.getFullYear(), lastMonth.getMonth() - (monthsShown() - 1), 1);
 
   function renderCal(dir = 0) {
     const n = monthsShown();
@@ -618,13 +623,13 @@
         const day = new Date(first.getFullYear(), first.getMonth(), d);
         cells += `<button type="button" class="bb-day" data-day="${iso(day)}" aria-label="${fmtLong.format(day)}"${day < today ? ' disabled' : ''}><span>${d}</span></button>`;
       }
-      out += `<div class="bb-month"><p class="bb-month-title">${fmtMonth.format(first)}</p>
-        <div class="bb-week" aria-hidden="true">${WEEKDAYS.map((w) => `<span>${w}</span>`).join('')}</div>
+      out += `<div class="bb-month" data-month-of="${first.getFullYear()}-${pad(first.getMonth() + 1)}"><div class="bb-month-head"><p class="bb-month-title">${fmtMonth.format(first)}</p>
+        <div class="bb-week" aria-hidden="true">${WEEKDAYS.map((w) => `<span>${w}</span>`).join('')}</div></div>
         <div class="bb-grid">${cells}</div></div>`;
     }
     monthsEl.innerHTML = out;
     $('[data-month="-1"]', bar).disabled = bk.view <= firstMonth;
-    $('[data-month="1"]', bar).disabled = bk.view >= lastMonth;
+    $('[data-month="1"]', bar).disabled = bk.view >= lastView();
     paint();
     if (dir && motion) gsap.fromTo(monthsEl, { x: dir * 28, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'expo.out' });
   }
@@ -673,8 +678,9 @@
 
   function viewFor(date) {
     const ref = date || today;
+    if (bk.sheet || !wide()) return firstMonth; // the phone sheet lists every month from now on
     let v = new Date(ref.getFullYear(), ref.getMonth(), 1);
-    if (v > lastMonth) v = lastMonth;
+    if (v > lastView()) v = lastView();
     return v < firstMonth ? firstMonth : v;
   }
 
@@ -708,6 +714,12 @@
     else cal.hidden = true;
   }
 
+  function scrollSheetToSelection() {
+    const ref = (bk.mode === 'room' ? bk.arr : bk.date) || today;
+    const m = $(`.bb-month[data-month-of="${ref.getFullYear()}-${pad(ref.getMonth() + 1)}"]`, monthsEl);
+    monthsEl.scrollTop = m ? m.offsetTop - monthsEl.offsetTop : 0;
+  }
+
   function openSheet() {
     if (!bk.sheet) {
       bk.sheet = true;
@@ -720,8 +732,10 @@
       refreshBar();
       setTimeout(() => $('.bb-close', bar).focus({ preventScroll: true }), 50);
     }
+    bk.view = firstMonth;
     renderCal();
     update();
+    scrollSheetToSelection();
   }
 
   function closeSheet() {
@@ -744,6 +758,7 @@
     submitBtn.textContent = mode === 'room' ? B.seeAvail : B.requestQuote;
     if (bk.open || bk.sheet) { bk.view = viewFor(mode === 'room' ? bk.arr : bk.date); renderCal(); }
     update();
+    if (bk.sheet) scrollSheetToSelection();
   }
 
   function submit() {
@@ -858,9 +873,12 @@
     else if (bk.open) { closeCal(); const f = $('.bb-field.is-active', bar) || $('[data-pick]', bar); if (f) f.focus(); }
   });
   backdrop.addEventListener('click', closeSheet);
+  let shownCount = monthsShown();
   window.addEventListener('resize', () => {
     if (wide() && bk.sheet) closeSheet();
     else if (!wide() && bk.open) closeCal();
+    else if (bk.open && monthsShown() !== shownCount) { bk.view = viewFor(bk.view); renderCal(); }
+    shownCount = monthsShown();
   });
 
   // Every "book" button on the page opens this calendar instead of leaving the site.
