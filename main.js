@@ -1,4 +1,14 @@
 (() => {
+  /* ---------- Settings to change when the hotel changes provider ---------- */
+  const CONFIG = {
+    // Booking engine. {arrival} and {departure} become YYYY-MM-DD, {adults} and {children} numbers.
+    // Another engine just needs its own address here, e.g. 'https://example.com/book?checkin={arrival}&checkout={departure}&adults={adults}&children={children}'.
+    bookingUrl: 'https://ibe.smarthotel.nl/hotel/95abf20a-8b60-4257-9257-4a60dcbb300e/{arrival}/{departure}/{adults}/{children}/0/0/rooms',
+    // Booking engine home page, used by the "book" links when the calendar is not available.
+    bookingHome: 'https://ibe.smarthotel.nl/?id=95abf20a-8b60-4257-9257-4a60dcbb300e&segment=Hotel',
+    hotelEmail: 'reservation@firsteuroflathotel.be',
+  };
+
   const html = document.documentElement;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const hasGsap = !!(window.gsap && window.ScrollTrigger);
@@ -13,6 +23,31 @@
       layouts: { theatre: 'Théâtre', ecole: 'École', conseil: 'Conseil', u: 'En U' },
       copy: 'Copier l’adresse', copied: 'Adresse copiée', copyFail: 'Copie impossible, sélectionnez l’adresse',
       info: { subject: 'Demande d’information', body: 'Bonjour,\n\n' },
+      roomNames: { grand: 'Grand Charlemagne (90 m²)', petit: 'Charlemagne I ou II (45 m²)' },
+      bb: {
+        region: 'Réservation', book: 'Réserver', room: 'Chambre', meeting: 'Salle de réunion',
+        arrival: 'Arrivée', departure: 'Départ', adults: 'Adultes', children: 'Enfants',
+        date: 'Date', slot: 'Horaire', participants: 'Participants',
+        choose: 'Choisir', chooseDates: 'Choisir les dates', seeAvail: 'Voir les disponibilités', requestQuote: 'Demander une offre',
+        pickArrival: 'Choisissez votre date d’arrivée', pickDeparture: 'Choisissez votre date de départ', pickDate: 'Choisissez la date de votre réunion',
+        clear: 'Effacer', close: 'Fermer', prev: 'Mois précédent', next: 'Mois suivant', less: 'Retirer', more: 'Ajouter',
+        nights: (n) => (n === 1 ? '1 nuit' : `${n} nuits`),
+        slots: ['Journée complète', 'Matinée', 'Après-midi', 'Soirée'],
+      },
+      meetingMail: (date, slot, people, pick) => ({
+        subject: 'Demande de réservation de salle de réunion',
+        body: [
+          'Bonjour,', '',
+          'Je souhaite réserver une salle de réunion au First Euroflat Hotel.', '',
+          `Date : ${date}`,
+          `Horaire : ${slot}`,
+          `Participants : ${people}`,
+          ...(pick ? [`Salle : ${pick.room}`, `Disposition : ${pick.layout}`] : []),
+          'Formule : forfait Light Lunch, forfait menu 3 services ou salle seule', '',
+          'Nom : ', 'Société : ', 'Téléphone : ', '',
+          'Merci d’avance,', '',
+        ],
+      }),
       offer: (room, layout, cap) => ({
         subject: 'Demande d’offre pour une réunion',
         body: [
@@ -33,6 +68,31 @@
       layouts: { theatre: 'Theatre', ecole: 'Classroom', conseil: 'Boardroom', u: 'U-shape' },
       copy: 'Copy address', copied: 'Address copied', copyFail: 'Copy failed, select the address',
       info: { subject: 'Information request', body: 'Hello,\n\n' },
+      roomNames: { grand: 'Grand Charlemagne (90 m²)', petit: 'Charlemagne I or II (45 m²)' },
+      bb: {
+        region: 'Booking', book: 'Book', room: 'Room', meeting: 'Meeting room',
+        arrival: 'Check-in', departure: 'Check-out', adults: 'Adults', children: 'Children',
+        date: 'Date', slot: 'Time', participants: 'Participants',
+        choose: 'Select', chooseDates: 'Choose your dates', seeAvail: 'Check availability', requestQuote: 'Request a quote',
+        pickArrival: 'Choose your check-in date', pickDeparture: 'Choose your check-out date', pickDate: 'Choose the date of your meeting',
+        clear: 'Clear', close: 'Close', prev: 'Previous month', next: 'Next month', less: 'Fewer', more: 'More',
+        nights: (n) => (n === 1 ? '1 night' : `${n} nights`),
+        slots: ['Full day', 'Morning', 'Afternoon', 'Evening'],
+      },
+      meetingMail: (date, slot, people, pick) => ({
+        subject: 'Meeting room booking request',
+        body: [
+          'Hello,', '',
+          'I would like to book a meeting room at the First Euroflat Hotel.', '',
+          `Date: ${date}`,
+          `Time: ${slot}`,
+          `Participants: ${people}`,
+          ...(pick ? [`Room: ${pick.room}`, `Layout: ${pick.layout}`] : []),
+          'Option: Light Lunch package, three-course menu package or room only', '',
+          'Name: ', 'Company: ', 'Phone: ', '',
+          'Thank you,', '',
+        ],
+      }),
       offer: (room, layout, cap) => ({
         subject: 'Meeting quote request',
         body: [
@@ -53,6 +113,31 @@
       layouts: { theatre: 'Theater', ecole: 'School', conseil: 'Boardroom', u: 'U-vorm' },
       copy: 'Adres kopiëren', copied: 'Adres gekopieerd', copyFail: 'Kopiëren mislukt, selecteer het adres',
       info: { subject: 'Vraag om informatie', body: 'Goedendag,\n\n' },
+      roomNames: { grand: 'Grand Charlemagne (90 m²)', petit: 'Charlemagne I of II (45 m²)' },
+      bb: {
+        region: 'Reserveren', book: 'Reserveren', room: 'Kamer', meeting: 'Vergaderzaal',
+        arrival: 'Aankomst', departure: 'Vertrek', adults: 'Volwassenen', children: 'Kinderen',
+        date: 'Datum', slot: 'Tijdstip', participants: 'Deelnemers',
+        choose: 'Kiezen', chooseDates: 'Kies uw data', seeAvail: 'Beschikbaarheid bekijken', requestQuote: 'Offerte aanvragen',
+        pickArrival: 'Kies uw aankomstdatum', pickDeparture: 'Kies uw vertrekdatum', pickDate: 'Kies de datum van uw vergadering',
+        clear: 'Wissen', close: 'Sluiten', prev: 'Vorige maand', next: 'Volgende maand', less: 'Minder', more: 'Meer',
+        nights: (n) => (n === 1 ? '1 nacht' : `${n} nachten`),
+        slots: ['Volledige dag', 'Voormiddag', 'Namiddag', 'Avond'],
+      },
+      meetingMail: (date, slot, people, pick) => ({
+        subject: 'Reservatieaanvraag vergaderzaal',
+        body: [
+          'Goedendag,', '',
+          'Graag reserveer ik een vergaderzaal in het First Euroflat Hotel.', '',
+          `Datum: ${date}`,
+          `Tijdstip: ${slot}`,
+          `Deelnemers: ${people}`,
+          ...(pick ? [`Zaal: ${pick.room}`, `Opstelling: ${pick.layout}`] : []),
+          'Formule: Light Lunch-formule, driegangenmenu-formule of enkel de zaal', '',
+          'Naam: ', 'Bedrijf: ', 'Telefoon: ', '',
+          'Alvast bedankt,', '',
+        ],
+      }),
       offer: (room, layout, cap) => ({
         subject: 'Offerteaanvraag voor een vergadering',
         body: [
@@ -162,6 +247,7 @@
 
   function openMenu() {
     menuOpen = true;
+    document.body.classList.add('menu-open');
     menu.hidden = false;
     nav.classList.add('menu-open');
     nav.classList.remove('is-hidden');
@@ -177,6 +263,7 @@
   function closeMenu() {
     if (!menuOpen) return;
     menuOpen = false;
+    document.body.classList.remove('menu-open');
     menu.hidden = true;
     nav.classList.remove('menu-open');
     toggle.setAttribute('aria-expanded', 'false');
@@ -381,6 +468,7 @@
       const value = btn.dataset.room || btn.dataset.layout;
       if (plan[key] === value) return;
       plan[key] = value;
+      plan.touched = true;
       $$(`.chip[data-${key}]`).forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
       renderPlan(true);
     });
@@ -389,7 +477,7 @@
 
   /* ---------- E-mail links ---------- */
   // The mailto link opens the visitor's mail app; the toast covers devices without one.
-  const HOTEL_MAIL = 'reservation@firsteuroflathotel.be';
+  const HOTEL_MAIL = CONFIG.hotelEmail;
   const toast = $('.mail-toast');
   const copyBtn = $('[data-copy]', toast);
   let toastTimer;
@@ -419,10 +507,13 @@
       const { subject, body } = mailContent(a.dataset.mail);
       const q = `subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       a.href = `mailto:${HOTEL_MAIL}?${q}`;
-      $('[data-gmail]', toast).href = `https://mail.google.com/mail/?view=cm&fs=1&to=${HOTEL_MAIL}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      showToast();
+      prepareFallback(subject, body);
     });
   });
+  function prepareFallback(subject, body) {
+    $('[data-gmail]', toast).href = `https://mail.google.com/mail/?view=cm&fs=1&to=${HOTEL_MAIL}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    showToast();
+  }
   $('.mail-toast-close', toast).addEventListener('click', hideToast);
   copyBtn.addEventListener('click', async () => {
     try {
@@ -432,6 +523,359 @@
       copyBtn.textContent = T.copyFail;
     }
   });
+
+  /* ---------- Booking bar: rooms go to SmartHotel, meeting rooms by e-mail ---------- */
+  const LOCALE = { fr: 'fr-BE', en: 'en-GB', nl: 'nl-BE' }[LANG];
+  const B = T.bb;
+  const pad = (n) => String(n).padStart(2, '0');
+  const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const parseISO = (v) => { const [y, m, d] = v.split('-').map(Number); return new Date(y, m - 1, d); };
+  const sameDay = (a, b) => !!a && !!b && a.getTime() === b.getTime();
+  const nightsBetween = (a, b) => Math.round((b - a) / 86400000);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const firstMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const lastMonth = new Date(today.getFullYear(), today.getMonth() + 17, 1);
+  const fmtShort = new Intl.DateTimeFormat(LOCALE, { weekday: 'short', day: 'numeric', month: 'short' });
+  const fmtLong = new Intl.DateTimeFormat(LOCALE, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const fmtMonth = new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric' });
+  const fmtWeekday = new Intl.DateTimeFormat(LOCALE, { weekday: 'narrow' });
+  const WEEKDAYS = Array.from({ length: 7 }, (_, i) => fmtWeekday.format(new Date(2024, 0, 1 + i))); // 1 Jan 2024 was a Monday
+  const LIMITS = { adults: [1, 8], children: [0, 6], people: [1, 100] };
+  const wide = () => window.innerWidth >= 900;
+
+  const bk = {
+    mode: 'room', arr: null, dep: null, date: null, picking: 'arrival',
+    adults: 2, children: 0, people: 10, slot: 0,
+    view: firstMonth, open: false, sheet: false, ready: false,
+  };
+
+  const stepper = (key, label) => `
+      <div class="bb-field bb-step">
+        <span class="bb-label" id="bb-${key}">${label}</span>
+        <div class="stepper" role="group" aria-labelledby="bb-${key}">
+          <button type="button" data-step-key="${key}" data-delta="-1" aria-label="${B.less} (${label})">−</button>
+          <output data-out="${key}">${bk[key]}</output>
+          <button type="button" data-step-key="${key}" data-delta="1" aria-label="${B.more} (${label})">+</button>
+        </div>
+      </div>`;
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'bb-backdrop';
+  const bar = document.createElement('div');
+  bar.className = 'bookbar';
+  bar.dataset.mode = 'room';
+  bar.setAttribute('role', 'region');
+  bar.setAttribute('aria-label', B.region);
+  bar.setAttribute('data-lenis-prevent', '');
+  bar.innerHTML = `
+    <div class="bb-head"><p class="bb-title">${B.book}</p><button type="button" class="bb-close" aria-label="${B.close}">×</button></div>
+    <div class="bb-tabs" role="tablist">
+      <button type="button" role="tab" data-mode="room" aria-selected="true">${B.room}</button>
+      <button type="button" role="tab" data-mode="meeting" aria-selected="false">${B.meeting}</button>
+    </div>
+    <div class="bb-fields">
+      <div class="bb-group" data-for="room">
+        <button type="button" class="bb-field" data-pick="arrival"><span class="bb-label">${B.arrival}</span><span class="bb-value" data-out="arr">${B.choose}</span></button>
+        <button type="button" class="bb-field" data-pick="departure"><span class="bb-label" data-out="dep-label">${B.departure}</span><span class="bb-value" data-out="dep">${B.choose}</span></button>
+        ${stepper('adults', B.adults)}
+        ${stepper('children', B.children)}
+      </div>
+      <div class="bb-group" data-for="meeting" hidden>
+        <button type="button" class="bb-field" data-pick="date"><span class="bb-label">${B.date}</span><span class="bb-value" data-out="date">${B.choose}</span></button>
+        <label class="bb-field bb-select"><span class="bb-label">${B.slot}</span><select data-in="slot">${B.slots.map((v, i) => `<option value="${i}">${v}</option>`).join('')}</select></label>
+        ${stepper('people', B.participants)}
+      </div>
+    </div>
+    <button type="button" class="btn btn-dark bb-submit">${B.seeAvail}</button>
+    <button type="button" class="bb-open">${B.chooseDates}</button>
+    <div class="bb-cal" hidden>
+      <div class="bb-cal-nav">
+        <button type="button" class="bb-nav" data-month="-1" aria-label="${B.prev}">‹</button>
+        <button type="button" class="bb-nav" data-month="1" aria-label="${B.next}">›</button>
+      </div>
+      <div class="bb-months"></div>
+      <div class="bb-cal-foot"><p class="bb-hint" aria-live="polite"></p><button type="button" class="bb-clear">${B.clear}</button></div>
+    </div>`;
+  document.body.append(backdrop, bar);
+  document.body.classList.add('has-bookbar');
+
+  const cal = $('.bb-cal', bar);
+  const monthsEl = $('.bb-months', bar);
+  const submitBtn = $('.bb-submit', bar);
+  const monthsShown = () => (wide() && !bk.sheet ? 2 : 1);
+
+  function renderCal(dir = 0) {
+    const n = monthsShown();
+    monthsEl.style.setProperty('--months', n);
+    let out = '';
+    for (let m = 0; m < n; m++) {
+      const first = new Date(bk.view.getFullYear(), bk.view.getMonth() + m, 1);
+      const lead = (first.getDay() + 6) % 7; // weeks start on Monday
+      const count = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+      let cells = '<span></span>'.repeat(lead);
+      for (let d = 1; d <= count; d++) {
+        const day = new Date(first.getFullYear(), first.getMonth(), d);
+        cells += `<button type="button" class="bb-day" data-day="${iso(day)}" aria-label="${fmtLong.format(day)}"${day < today ? ' disabled' : ''}><span>${d}</span></button>`;
+      }
+      out += `<div class="bb-month"><p class="bb-month-title">${fmtMonth.format(first)}</p>
+        <div class="bb-week" aria-hidden="true">${WEEKDAYS.map((w) => `<span>${w}</span>`).join('')}</div>
+        <div class="bb-grid">${cells}</div></div>`;
+    }
+    monthsEl.innerHTML = out;
+    $('[data-month="-1"]', bar).disabled = bk.view <= firstMonth;
+    $('[data-month="1"]', bar).disabled = bk.view >= lastMonth;
+    paint();
+    if (dir && motion) gsap.fromTo(monthsEl, { x: dir * 28, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'expo.out' });
+  }
+
+  // Marks the chosen range; while picking a departure, the hovered day previews the end.
+  function paint(hover) {
+    const room = bk.mode === 'room';
+    const end = room ? (bk.dep || (bk.picking === 'departure' && hover && bk.arr && hover > bk.arr ? hover : null)) : null;
+    $$('.bb-day', monthsEl).forEach((b) => {
+      const d = parseISO(b.dataset.day);
+      const start = room ? sameDay(d, bk.arr) : sameDay(d, bk.date);
+      const isEnd = room && sameDay(d, end);
+      b.classList.toggle('is-start', start);
+      b.classList.toggle('is-end', isEnd);
+      b.classList.toggle('has-range', start && !!end);
+      b.classList.toggle('in-range', room && !!bk.arr && !!end && d > bk.arr && d < end);
+      b.classList.toggle('is-today', sameDay(d, today));
+      b.setAttribute('aria-pressed', String(start || isEnd));
+    });
+  }
+
+  function update() {
+    const room = bk.mode === 'room';
+    $('[data-out="arr"]', bar).textContent = bk.arr ? fmtShort.format(bk.arr) : B.choose;
+    $('[data-out="dep"]', bar).textContent = bk.dep ? fmtShort.format(bk.dep) : B.choose;
+    $('[data-out="dep-label"]', bar).textContent = bk.arr && bk.dep ? `${B.departure} (${B.nights(nightsBetween(bk.arr, bk.dep))})` : B.departure;
+    $('[data-out="date"]', bar).textContent = bk.date ? fmtShort.format(bk.date) : B.choose;
+    let hint;
+    if (room) {
+      if (!bk.arr) hint = B.pickArrival;
+      else if (!bk.dep) hint = B.pickDeparture;
+      else hint = `${B.nights(nightsBetween(bk.arr, bk.dep))}, ${fmtShort.format(bk.arr)} → ${fmtShort.format(bk.dep)}`;
+    } else {
+      hint = bk.date ? fmtLong.format(bk.date) : B.pickDate;
+    }
+    $('.bb-hint', bar).textContent = hint;
+    $$('[data-pick]', bar).forEach((f) => {
+      const active = (bk.open || bk.sheet) && (f.dataset.pick === 'date' || f.dataset.pick === bk.picking);
+      f.classList.toggle('is-active', active);
+    });
+    Object.keys(LIMITS).forEach((k) => {
+      $(`[data-step-key="${k}"][data-delta="-1"]`, bar).disabled = bk[k] <= LIMITS[k][0];
+      $(`[data-step-key="${k}"][data-delta="1"]`, bar).disabled = bk[k] >= LIMITS[k][1];
+    });
+  }
+
+  function viewFor(date) {
+    const ref = date || today;
+    let v = new Date(ref.getFullYear(), ref.getMonth(), 1);
+    if (v > lastMonth) v = lastMonth;
+    return v < firstMonth ? firstMonth : v;
+  }
+
+  function openCal(pick) {
+    if (pick === 'arrival' || pick === 'departure') {
+      if (bk.mode !== 'room') setMode('room');
+      bk.picking = pick === 'departure' && bk.arr ? 'departure' : 'arrival';
+    }
+    if (pick === 'date' && bk.mode !== 'meeting') setMode('meeting');
+    const ref = bk.mode === 'room' ? (bk.picking === 'departure' ? bk.arr : bk.arr || null) : bk.date;
+    bk.view = viewFor(ref);
+    if (!wide()) { openSheet(); return; }
+    renderCal();
+    if (!bk.open) {
+      bk.open = true;
+      cal.hidden = false;
+      refreshBar();
+      if (motion) gsap.fromTo(cal, { opacity: 0, y: 16, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'expo.out' });
+    }
+    update();
+    const focusDay = $('.bb-day.is-start', monthsEl) || $(`.bb-day[data-day="${iso(today)}"]`, monthsEl) || $('.bb-day:not([disabled])', monthsEl);
+    if (focusDay) focusDay.focus({ preventScroll: true });
+  }
+
+  function closeCal() {
+    if (!bk.open) return;
+    bk.open = false;
+    update();
+    refreshBar();
+    if (motion) gsap.to(cal, { opacity: 0, y: 10, duration: 0.25, onComplete: () => { if (!bk.open) cal.hidden = true; } });
+    else cal.hidden = true;
+  }
+
+  function openSheet() {
+    if (!bk.sheet) {
+      bk.sheet = true;
+      bar.classList.add('is-sheet');
+      backdrop.classList.add('is-on');
+      cal.hidden = false;
+      cal.style.opacity = '';
+      document.body.style.overflow = 'hidden';
+      if (lenis) lenis.stop();
+      refreshBar();
+      setTimeout(() => $('.bb-close', bar).focus({ preventScroll: true }), 50);
+    }
+    renderCal();
+    update();
+  }
+
+  function closeSheet() {
+    if (!bk.sheet) return;
+    bk.sheet = false;
+    bar.classList.remove('is-sheet');
+    backdrop.classList.remove('is-on');
+    cal.hidden = true;
+    document.body.style.overflow = '';
+    if (lenis) lenis.start();
+    update();
+    refreshBar();
+  }
+
+  function setMode(mode) {
+    bk.mode = mode;
+    bar.dataset.mode = mode;
+    $$('.bb-tabs [role="tab"]', bar).forEach((t) => t.setAttribute('aria-selected', String(t.dataset.mode === mode)));
+    $$('.bb-group', bar).forEach((g) => { g.hidden = g.dataset.for !== mode; });
+    submitBtn.textContent = mode === 'room' ? B.seeAvail : B.requestQuote;
+    if (bk.open || bk.sheet) { bk.view = viewFor(mode === 'room' ? bk.arr : bk.date); renderCal(); }
+    update();
+  }
+
+  function submit() {
+    if (bk.mode === 'room') {
+      if (!bk.arr || !bk.dep) { openCal(bk.arr ? 'departure' : 'arrival'); return; }
+      const url = CONFIG.bookingUrl
+        .replace('{arrival}', iso(bk.arr)).replace('{departure}', iso(bk.dep))
+        .replace('{adults}', bk.adults).replace('{children}', bk.children);
+      window.open(url, '_blank', 'noopener');
+    } else {
+      if (!bk.date) { openCal('date'); return; }
+      const pick = plan.touched ? { room: T.roomNames[plan.room], layout: T.layouts[plan.layout] } : null;
+      const { subject, body } = T.meetingMail(fmtLong.format(bk.date), B.slots[bk.slot], bk.people, pick);
+      const text = body.join('\n');
+      window.location.href = `mailto:${HOTEL_MAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
+      prepareFallback(subject, text);
+    }
+    closeCal();
+    closeSheet();
+  }
+
+  // The bar slides in after the opening animation and steps aside for the footer, the menu and the mail toast.
+  function refreshBar() {
+    const nearFooter = contact.getBoundingClientRect().top < window.innerHeight * 0.75;
+    const show = bk.ready && !document.body.classList.contains('menu-open') && (bk.open || bk.sheet || !nearFooter);
+    bar.classList.toggle('is-in', show);
+    if (!show && bk.open) closeCal();
+  }
+  function showBar() { bk.ready = true; refreshBar(); }
+  window.addEventListener('scroll', () => requestAnimationFrame(refreshBar), { passive: true });
+
+  bar.addEventListener('click', (e) => {
+    const tab = e.target.closest('[role="tab"]');
+    if (tab) { setMode(tab.dataset.mode); if (bk.open) openCal(bk.mode === 'room' ? 'arrival' : 'date'); return; }
+    const step = e.target.closest('[data-step-key]');
+    if (step) {
+      const k = step.dataset.stepKey;
+      const up = +step.dataset.delta > 0;
+      const size = k === 'people' && (up ? bk.people >= 20 : bk.people > 20) ? 5 : 1;
+      bk[k] = Math.min(LIMITS[k][1], Math.max(LIMITS[k][0], bk[k] + (up ? size : -size)));
+      $(`[data-out="${k}"]`, bar).textContent = bk[k];
+      update();
+      return;
+    }
+    const field = e.target.closest('[data-pick]');
+    if (field) { openCal(field.dataset.pick); return; }
+    const nav = e.target.closest('[data-month]');
+    if (nav) {
+      const d = +nav.dataset.month;
+      bk.view = new Date(bk.view.getFullYear(), bk.view.getMonth() + d, 1);
+      renderCal(d);
+      return;
+    }
+    if (e.target.closest('.bb-clear')) {
+      bk.arr = bk.dep = bk.date = null;
+      bk.picking = 'arrival';
+      paint(); update();
+      return;
+    }
+    if (e.target.closest('.bb-open')) { openCal(bk.mode === 'room' ? 'arrival' : 'date'); return; }
+    if (e.target.closest('.bb-close')) { closeSheet(); return; }
+    if (e.target.closest('.bb-submit')) submit();
+  });
+  $('[data-in="slot"]', bar).addEventListener('change', (e) => { bk.slot = +e.target.value; });
+
+  monthsEl.addEventListener('click', (e) => {
+    const b = e.target.closest('.bb-day');
+    if (!b || b.disabled) return;
+    const d = parseISO(b.dataset.day);
+    if (bk.mode === 'meeting') {
+      bk.date = d;
+      paint(); update();
+      if (bk.open) setTimeout(closeCal, 220);
+      return;
+    }
+    if (bk.picking === 'arrival' || !bk.arr || d <= bk.arr) {
+      bk.arr = d; bk.dep = null; bk.picking = 'departure';
+    } else {
+      bk.dep = d; bk.picking = 'arrival';
+      if (bk.open) setTimeout(closeCal, 260);
+    }
+    paint(); update();
+  });
+  monthsEl.addEventListener('mouseover', (e) => {
+    if (bk.mode !== 'room' || bk.picking !== 'departure') return;
+    const b = e.target.closest('.bb-day:not([disabled])');
+    paint(b ? parseISO(b.dataset.day) : null);
+  });
+  monthsEl.addEventListener('mouseleave', () => paint());
+  monthsEl.addEventListener('keydown', (e) => {
+    const moves = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+    const b = e.target.closest('.bb-day');
+    if (!b || !(e.key in moves)) return;
+    e.preventDefault();
+    const cur = parseISO(b.dataset.day);
+    const target = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + moves[e.key]);
+    if (target < today) return;
+    let el = $(`.bb-day[data-day="${iso(target)}"]`, monthsEl);
+    if (!el) {
+      const back = moves[e.key] < 0;
+      bk.view = viewFor(new Date(target.getFullYear(), target.getMonth() - (back ? 0 : monthsShown() - 1), 1));
+      renderCal(back ? -1 : 1);
+      el = $(`.bb-day[data-day="${iso(target)}"]`, monthsEl);
+    }
+    if (el) el.focus();
+  });
+
+  document.addEventListener('mousedown', (e) => { if (bk.open && !bar.contains(e.target)) closeCal(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (bk.sheet) closeSheet();
+    else if (bk.open) { closeCal(); const f = $('.bb-field.is-active', bar) || $('[data-pick]', bar); if (f) f.focus(); }
+  });
+  backdrop.addEventListener('click', closeSheet);
+  window.addEventListener('resize', () => {
+    if (wide() && bk.sheet) closeSheet();
+    else if (!wide() && bk.open) closeCal();
+  });
+
+  // Every "book" button on the page opens this calendar instead of leaving the site.
+  $$('.btn-book, .hero-actions .btn, .rooms-aside .btn, .big-cta, .book-float').forEach((a) => {
+    a.href = CONFIG.bookingHome;
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeMenu();
+      bk.ready = true;
+      openCal('arrival');
+    });
+  });
+
+  update();
+  if (!motion) showBar();
 
   /* ---------- Static fallbacks when motion is off ---------- */
   const revealHeadings = $$('[data-reveal]').map((el) => ({ el, words: splitWords(el) }));
@@ -506,6 +950,7 @@
   }
 
   function finishIntroInstantly() {
+    setTimeout(showBar, 700);
     gsap.set(win, { '--lift': '0px' });
     gsap.set(winImg, { scale: 1.12 });
     gsap.set('.hero-title .line > span', { yPercent: 0, y: 0 });
@@ -519,7 +964,7 @@
     if (lenis) lenis.stop();
     const tl = gsap.timeline({
       defaults: { ease: 'expo.out' },
-      onComplete: () => { if (lenis) lenis.start(); },
+      onComplete: () => { if (lenis) lenis.start(); showBar(); },
     });
     tl.fromTo('.hero-title .line > span', { yPercent: 135, y: 0 }, { yPercent: 0, duration: 1.5, stagger: 0.13 }, 0.15)
       .to(win, { '--lift': '0px', duration: 1.9, ease: 'expo.inOut' }, 0.05)
