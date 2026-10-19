@@ -631,7 +631,8 @@
     $('[data-month="-1"]', bar).disabled = bk.view <= firstMonth;
     $('[data-month="1"]', bar).disabled = bk.view >= lastView();
     paint();
-    if (dir && motion) gsap.fromTo(monthsEl, { x: dir * 28, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'expo.out' });
+    // clearProps drops the leftover transform so the month list never sits above the arrows
+    if (dir && motion) gsap.fromTo(monthsEl, { x: dir * 28, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'expo.out', clearProps: 'transform,opacity' });
   }
 
   // Marks the chosen range; while picking a departure, the hovered day previews the end.

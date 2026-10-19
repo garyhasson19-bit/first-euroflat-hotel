@@ -594,7 +594,7 @@ sup { font-size: .5em; vertical-align: .9em; line-height: 0; }
   box-shadow: 0 30px 80px rgba(27, 37, 69, .32), 0 0 0 1px rgba(27, 37, 69, .06);
 }
 .bb-cal[hidden] { display: none; }
-.bb-cal-nav { position: absolute; left: 18px; right: 18px; top: 18px; display: flex; justify-content: space-between; pointer-events: none; }
+.bb-cal-nav { position: absolute; z-index: 5; left: 18px; right: 18px; top: 18px; display: flex; justify-content: space-between; pointer-events: none; }
 .bb-nav {
   pointer-events: auto; width: 38px; height: 38px; display: grid; place-items: center; padding: 0 0 3px;
   border: 1px solid rgba(27, 37, 69, .2); border-radius: 50%; background: transparent;
